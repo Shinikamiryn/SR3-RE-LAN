@@ -31,12 +31,12 @@ The Co-op menu is the UI container `main_menu_coop_top` (`main_menu_coop_top.str
 - **Override archive ignored:** the game ignores `patch_compressed.vpp_pc` for UI screens not listed in `patch_vint_doc_containers.asm_pc`, which ships empty. So the container is replaced **in place**: its slot in `interface.vpp_pc` has 16384 bytes, and the patched container is about 15.9 KB.
 - **Manifest sizes:** the game sizes its load buffers from the container manifest `vint_doc_containers.asm_pc`. Its record for `main_menu_coop_top.vint_doc` stores the compressed container size (record + `0x34`) and the script size (record + `0x4C` and `0xAA`). These must be updated, or the menu screen breaks.
 
-## The LAN join bug
+## Why LAN joining fails as shipped, and `lan_join.patch`
 
 - **Where:** join step 2 (`0x14046d20a`), which LAN sessions also run. It fills the host address with `GetLobbyOwner()` and marks it as a Steam address (`session+0x38 = 1`, at `0x14046d26c`).
-- **What fails:** the host-address check `0x140469c30` requires an IP address (`+0x10 == 0`) for LAN sessions and otherwise returns 2. So every LAN join fails with "the session is no longer available", whoever hosts. It's a leftover from the Steam port.
-- **Fix:** RVA `0x469c91`, `74 52` → `EB 52`. Signature `f6 c3 40 48 8b 5c 24 30 74 16 83 7e 10 00 [74] 52 b8 02 00 00 00`. Only the LAN branch is affected; online play is unchanged.
-- **Delivery:** the Steam EXE is wrapped by SteamStub, so the fix is applied in memory by the mod loader rather than on disk.
+- **What happens:** the host-address check `0x140469c30` requires an IP address (`+0x10 == 0`) for LAN sessions and otherwise returns 2. So a LAN join ends with "the session is no longer available", whoever hosts. The Steam path sets the address type; the LAN path was never adjusted for it.
+- **The patch:** RVA `0x469c91`, `74 52` → `EB 52`. Signature `f6 c3 40 48 8b 5c 24 30 74 16 83 7e 10 00 [74] 52 b8 02 00 00 00`. Only the LAN branch is affected; online play is unchanged.
+- **Delivery:** the Steam EXE is wrapped by SteamStub, so the patch is applied in memory by the mod loader rather than on disk.
 
 ## How LAN discovery and joining work
 

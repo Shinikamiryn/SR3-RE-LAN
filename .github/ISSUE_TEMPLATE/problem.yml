@@ -1,0 +1,34 @@
+name: Problem / store report
+description: Something doesn't work, or you tried the mod on GOG, Epic or another version
+labels: ["report"]
+body:
+  - type: dropdown
+    id: store
+    attributes:
+      label: Store
+      options: [Steam, GOG, Epic, Other]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Game version (if you know it)
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what you saw (error messages word for word).
+    validations:
+      required: true
+  - type: textarea
+    id: status
+    attributes:
+      label: Output of `LANMod_Installer.exe status`
+      description: Run it from a command prompt in the mod folder and paste the text.
+      render: text
+  - type: textarea
+    id: log
+    attributes:
+      label: modloader\modloader.log
+      description: From the game folder, if it exists. Remove anything you don't want to share.
+      render: text

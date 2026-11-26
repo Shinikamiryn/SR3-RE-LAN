@@ -18,7 +18,7 @@ rm -rf dist && mkdir -p $OUT/files
     -Wl,--enable-stdcall-fixup -lkernel32
 "$CC" -O2 -Wall -Wextra -static -s -o $OUT/LANMod_Installer.exe installer/lanmod_installer.c -ladvapi32
 
-cp patches/lan_join_fix.patch $OUT/files/
+cp patches/lan_join.patch $OUT/files/
 cp release/README.txt $OUT/README.txt
 cp LICENSE $OUT/LICENSE.txt
 printf '@echo off\r\n"%%~dp0LANMod_Installer.exe" uninstall\r\n' > "$OUT/Uninstall LAN Mod.bat"

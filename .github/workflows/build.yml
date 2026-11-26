@@ -1,0 +1,33 @@
+name: build
+
+# Builds the mod for every push and pull request, so a contribution that doesn't compile shows a
+# red X before anyone has to look at it. The built LAN_Mod folder is attached to the run for testing.
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: mingw-w64-x86_64-gcc zip
+      - name: Build loader, installer and release folder
+        shell: msys2 {0}
+        run: CC=gcc sh build.sh
+      - name: Check the release folder is complete
+        shell: msys2 {0}
+        run: |
+          for f in LANMod_Installer.exe README.txt LICENSE.txt "Uninstall LAN Mod.bat" files/dinput8.dll files/lan_join.patch; do
+            test -f "dist/LAN_Mod/$f" || { echo "missing: $f"; exit 1; }
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LAN_Mod-test-build
+          path: dist/LAN_Mod

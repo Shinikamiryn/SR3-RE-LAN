@@ -4,13 +4,13 @@ Play the co-op campaign of **Saints Row: The Third Remastered (PC)** over your l
 Steam lobbies or online services.
 
 The PC version still contains the game's LAN ("System Link") code: UDP broadcast discovery on port
-4200 and LAN session create/join. Two things stop it from working:
+4200 and LAN session create/join. In the PC version as shipped:
 
-1. The **LAN entry was removed** from the Co-op menu.
-2. Joining a LAN game **always fails** ("the session is no longer available") because of a bug in the
-   PC port: the join code marks the host's address as a Steam address, and the LAN check then rejects it.
+1. The **LAN entry is missing** from the Co-op menu.
+2. **Joining a LAN game fails** with "the session is no longer available": the join code stores the
+   host's address as a Steam address, and the LAN path only accepts a network address.
 
-This mod puts the menu entry back and fixes the bug. Every player needs it installed.
+This mod restores the menu entry and makes LAN joining work. Every player needs it installed.
 
 ## For players
 
@@ -31,10 +31,10 @@ a backup of the original bytes.
 |---|---|
 | `installer/lanmod_installer.c` | Finds the game. Reads `main_menu_coop_top.str2_pc` from `cache/interface.vpp_pc` by name, unpacks the menu script (LZ4), adds the LAN button with text edits that must each match exactly once, repacks it and writes it back into its own slot. Then updates the archive directory and the container manifest (`vint_doc_containers.asm_pc`). The original bytes go to `interface.vpp_pc.lanmod_backup`, and uninstall restores and verifies them. |
 | `loader/` | A small mod loader: a `dinput8.dll` proxy. Windows loads it from the game folder; it forwards DirectInput to the real DLL and applies `modloader/patches/*.patch` in memory at startup. The game EXE is never modified, which keeps it compatible with DRM-wrapped EXEs. Patches find their target with byte signatures, so they also work when the code moves between store versions. |
-| `patches/lan_join_fix.patch` | The join bug fix: one byte (`je` to `jmp`) in the LAN branch of the host-address check. |
+| `patches/lan_join.patch` | Makes LAN joining work: one byte (`je` to `jmp`) in the LAN branch of the host-address check, so it accepts the host's address. |
 | `tools/vpp.py`, `tools/vpp_write.py` | Python reader/writer for the game's `.vpp_pc` / `.str2_pc` packfiles (v6, LZ4), for modders. |
 
-Technical notes (archive format, the join bug, network protocol): [docs/TECHNICAL.md](docs/TECHNICAL.md).
+Technical notes (archive format, how LAN joining works, network protocol): [docs/TECHNICAL.md](docs/TECHNICAL.md).
 
 ### Patch file format (for other loader mods)
 

@@ -15,9 +15,10 @@
  *     container manifest (vint_doc_containers.asm_pc) get the new sizes. The exact original bytes
  *     are saved to cache\interface.vpp_pc.lanmod_backup first; uninstall restores and verifies them.
  *     No game file is shipped with the mod.
- *  2. Join fix: copies the mod loader (dinput8.dll) and modloader\patches\lan_join_fix.patch into
- *     the game folder. The loader fixes the PC port's LAN join bug in memory at every start; the
- *     game EXE is never modified.
+ *  2. LAN joining: copies the mod loader (dinput8.dll) and modloader\patches\lan_join.patch into
+ *     the game folder. In the shipped PC version a LAN join always ends with "session is no longer
+ *     available"; the loader applies lan_join.patch in memory at every start so LAN joining works.
+ *     The game EXE is never modified.
  *
  * Everything is located by name / content, not by fixed file positions, so other store versions
  * work as long as the menu script is the same.
@@ -25,6 +26,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -78,7 +80,6 @@ static int write_at(HANDLE h, uint64_t pos, const void *src, size_t n)
     DWORD put; return WriteFile(h, src, (DWORD)n, &put, NULL) && put == n;
 }
 static int file_exists(const char *p) { DWORD a = GetFileAttributesA(p); return a != INVALID_FILE_ATTRIBUTES && !(a & FILE_ATTRIBUTE_DIRECTORY); }
-static int dir_exists(const char *p) { DWORD a = GetFileAttributesA(p); return a != INVALID_FILE_ATTRIBUTES && (a & FILE_ATTRIBUTE_DIRECTORY); }
 static uint8_t *load_file(const char *p, size_t *n)
 {
     FILE *f = fopen(p, "rb"); if (!f) return NULL;
@@ -472,7 +473,9 @@ static void uninstall_menu(const char *game)
     printf("  menu: original restored\n");
 }
 
-/* ------------------------------------------------------------------ loader + join fix */
+/* ------------------------------------------------------------------ loader + LAN join patch */
+#define PATCH_NAME     "lan_join.patch"
+#define OLD_PATCH_NAME "lan_join_fix.patch"   /* name used by the first build; removed when found */
 static int is_our_loader(const char *p)
 {
     size_t n; uint8_t *d = load_file(p, &n); if (!d) return 0;
@@ -492,15 +495,17 @@ static void install_loader(const char *game)
     char src[MAX_PATH], srcp[MAX_PATH], dll[MAX_PATH], dir[MAX_PATH], pdir[MAX_PATH], patch[MAX_PATH], me[MAX_PATH];
     exe_dir(me);
     snprintf(src, sizeof src, "%s\\files\\dinput8.dll", me);
-    snprintf(srcp, sizeof srcp, "%s\\files\\lan_join_fix.patch", me);
+    snprintf(srcp, sizeof srcp, "%s\\files\\" PATCH_NAME, me);
     if (!file_exists(src) || !file_exists(srcp)) die("the 'files' folder next to the installer is missing (unzip the whole mod)");
     snprintf(dll, sizeof dll, "%s\\dinput8.dll", game);
     if (file_exists(dll) && !is_our_loader(dll)) die("another dinput8.dll is already in the game folder (another mod or tool). Not overwriting it.");
     snprintf(dir, sizeof dir, "%s\\modloader", game); CreateDirectoryA(dir, NULL);
     snprintf(pdir, sizeof pdir, "%s\\modloader\\patches", game); CreateDirectoryA(pdir, NULL);
-    snprintf(patch, sizeof patch, "%s\\lan_join_fix.patch", pdir);
+    snprintf(patch, sizeof patch, "%s\\" PATCH_NAME, pdir);
     if (!CopyFileA(src, dll, FALSE) || !CopyFileA(srcp, patch, FALSE)) die("copying the mod loader failed (is the game running?)");
-    printf("  join fix: mod loader (dinput8.dll) + modloader\\patches\\lan_join_fix.patch installed\n");
+    char old[MAX_PATH]; snprintf(old, sizeof old, "%s\\" OLD_PATCH_NAME, pdir);
+    if (file_exists(old)) DeleteFileA(old);
+    printf("  LAN joining: mod loader (dinput8.dll) + modloader\\patches\\" PATCH_NAME " installed\n");
 }
 
 static void uninstall_loader(const char *game)
@@ -508,8 +513,10 @@ static void uninstall_loader(const char *game)
     char dll[MAX_PATH], patch[MAX_PATH], pdir[MAX_PATH], dir[MAX_PATH], q[MAX_PATH];
     snprintf(dll, sizeof dll, "%s\\dinput8.dll", game);
     snprintf(pdir, sizeof pdir, "%s\\modloader\\patches", game);
-    snprintf(patch, sizeof patch, "%s\\lan_join_fix.patch", pdir);
+    snprintf(patch, sizeof patch, "%s\\" PATCH_NAME, pdir);
     snprintf(dir, sizeof dir, "%s\\modloader", game);
+    if (file_exists(patch)) DeleteFileA(patch);
+    snprintf(patch, sizeof patch, "%s\\" OLD_PATCH_NAME, pdir);
     if (file_exists(patch)) DeleteFileA(patch);
     /* keep the loader if other mods use it */
     snprintf(q, sizeof q, "%s\\*", pdir);
@@ -518,7 +525,7 @@ static void uninstall_loader(const char *game)
     char plug[MAX_PATH]; snprintf(plug, sizeof plug, "%s\\modloader\\plugins\\*", game);
     h = FindFirstFileA(plug, &fd);
     if (h != INVALID_HANDLE_VALUE) { do { if (fd.cFileName[0] != '.') others++; } while (FindNextFileA(h, &fd)); FindClose(h); }
-    if (others) { printf("  join fix removed; mod loader kept (other mods use it)\n"); return; }
+    if (others) { printf("  LAN joining patch removed; mod loader kept (other mods use it)\n"); return; }
     if (file_exists(dll) && is_our_loader(dll)) DeleteFileA(dll);
     char logp[MAX_PATH];
     for (int i = 1; i <= 8; i++) {
@@ -527,7 +534,7 @@ static void uninstall_loader(const char *game)
     }
     snprintf(plug, sizeof plug, "%s\\modloader\\plugins", game); RemoveDirectoryA(plug);
     RemoveDirectoryA(pdir); RemoveDirectoryA(dir);
-    printf("  join fix + mod loader removed\n");
+    printf("  LAN joining patch + mod loader removed\n");
 }
 
 /* ------------------------------------------------------------------ finding the game */
@@ -676,11 +683,11 @@ int main(int argc, char **argv)
     if (!_stricmp(cmd, "status")) {
         menu_loc_t L; locate_menu(game, &L, 0);
         char bp[MAX_PATH]; backup_path(game, bp); char dll[MAX_PATH]; snprintf(dll, sizeof dll, "%s\\dinput8.dll", game);
-        char patch[MAX_PATH]; snprintf(patch, sizeof patch, "%s\\modloader\\patches\\lan_join_fix.patch", game);
+        char patch[MAX_PATH]; snprintf(patch, sizeof patch, "%s\\modloader\\patches\\" PATCH_NAME, game);
         printf("  menu LAN entry : %s\n", menu_installed(&L, NULL) ? "installed" : "not installed");
         printf("  menu backup    : %s\n", file_exists(bp) ? "present" : "none");
         printf("  mod loader     : %s\n", file_exists(dll) ? (is_our_loader(dll) ? "installed" : "a different dinput8.dll") : "not installed");
-        printf("  join fix       : %s\n", file_exists(patch) ? "installed" : "not installed");
+        printf("  LAN joining    : %s\n", file_exists(patch) ? "installed" : "not installed");
         CloseHandle(L.h);
     } else if (!_stricmp(cmd, "uninstall")) {
         printf("Uninstalling...\n"); uninstall_menu(game); uninstall_loader(game);
