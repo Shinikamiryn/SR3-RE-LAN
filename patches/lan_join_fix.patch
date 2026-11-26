@@ -1,0 +1,9 @@
+# SRTTR LAN mod - join fix
+# The PC port's join step (0x14046d20a) marks the LAN host address as Steam-type, then the host-address
+# check 0x140469c30 rejects it for LAN sessions, so every LAN join ends with
+# "session is no longer available". je -> jmp in that LAN-only branch accepts the host address.
+# Steam build 2021-07-14: RVA 0x469c91. Online (Steam) joins use the other branch and are unaffected.
+name   = lan_join_host_addr
+sig    = f6 c3 40 48 8b 5c 24 30 74 16 83 7e 10 00 74 52 b8 02 00 00 00
+offset = 14
+bytes  = eb
