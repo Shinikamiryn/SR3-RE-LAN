@@ -51,5 +51,5 @@ The Co-op menu is the UI container `main_menu_coop_top` (`main_menu_coop_top.str
 
 - **How it loads:** `dinput8.dll` in the game folder. The game imports `DINPUT8.dll`, so Windows loads this copy first.
 - **Forwarding:** it forwards `DirectInput8Create`, `DllGetClassObject`, `DllCanUnloadNow`, `DllRegisterServer` and `DllUnregisterServer` to `System32\dinput8.dll`.
-- **Patching:** in `DllMain` it applies `modloader/patches/*.reloc`, then `*.cave`, then `*.patch`, before the game's own startup code runs. Then it loads `modloader/plugins/*.dll` on a worker thread.
-- **Log:** `modloader/modloader.log`.
+- **Patching:** in `DllMain` it applies `ploader/patches/*.reloc`, then `*.cave`, then `*.patch`, before the game's own startup code runs. Then it loads `ploader/plugins/*.dll` on a worker thread.
+- **Log:** `ploader/ploader.log`.

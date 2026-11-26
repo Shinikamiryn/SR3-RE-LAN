@@ -43,10 +43,10 @@ WHAT IT CHANGES
 ---------------
 - cache\interface.vpp_pc: the Co-op menu gets a "LAN" entry. Backup:
   cache\interface.vpp_pc.lanmod_backup
-- dinput8.dll + modloader\ in the game folder: a small mod loader that applies
-  modloader\patches\lan_join.patch in memory each time the game starts, so LAN joining works.
+- dinput8.dll + ploader\ in the game folder: a small mod loader that applies
+  ploader\patches\lan_join.patch in memory each time the game starts, so LAN joining works.
   The game's .exe file is never modified.
-  modloader\modloader.log shows "patch lan_join_host_addr: APPLIED" when it is active.
+  ploader\ploader.log shows "patch lan_join_host_addr: APPLIED" when it is active.
 
 
 OTHER COMMANDS

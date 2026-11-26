@@ -3,9 +3,9 @@
  *
  * The game imports DINPUT8.dll; Windows loads this copy from the game folder first. We forward the
  * DirectInput exports to the real System32\dinput8.dll and, on a background thread:
- *   1. apply byte patches described in  <game>\modloader\patches\*.patch
- *   2. load plugin DLLs from            <game>\modloader\plugins\*.dll
- * Everything is logged to               <game>\modloader\modloader.log
+ *   1. apply byte patches described in  <game>\ploader\patches\*.patch
+ *   2. load plugin DLLs from            <game>\ploader\plugins\*.dll
+ * Everything is logged to               <game>\ploader\ploader.log
  *
  * Patch file format (one patch per file, '#' starts a comment):
  *   name    = lan_join_host_addr
@@ -28,7 +28,7 @@
 #define MAX_SIG 256
 
 static HMODULE g_real;
-static char g_root[MAX_PATH];      /* <game>\modloader */
+static char g_root[MAX_PATH];      /* <game>\ploader */
 const char *ml_root(void) { return g_root; }
 static CRITICAL_SECTION g_logcs;
 static FILE *g_log;
@@ -48,8 +48,6 @@ static void vlog(const char *fmt, va_list ap)
 static void logf_(const char *fmt, ...) { va_list ap; va_start(ap, fmt); vlog(fmt, ap); va_end(ap); }
 void ml_log(const char *fmt, ...) { va_list ap; va_start(ap, fmt); vlog(fmt, ap); va_end(ap); }
 
-/* modloader\config.ini: string value of key (trimmed), or "" */
-/* modloader\config.ini: "key = value" lines, '#' comments. Returns the integer value or def. */
 /* ------------------------------------------------------------------ real dinput8 forwarding */
 static void load_real(void)
 {
@@ -437,14 +435,14 @@ static void init(void)
     InitializeCriticalSection(&g_logcs);
     char exe[MAX_PATH]; GetModuleFileNameA(NULL, exe, MAX_PATH);
     char *slash = strrchr(exe, '\\'); if (slash) *slash = 0;
-    snprintf(g_root, sizeof g_root, "%s\\modloader", exe);
+    snprintf(g_root, sizeof g_root, "%s\\ploader", exe);
     CreateDirectoryA(g_root, NULL);
-    /* one log per running instance: modloader.log, modloader-2.log, ... (a second copy of the game
+    /* one log per running instance: ploader.log, ploader-2.log, ... (a second copy of the game
        must not truncate the first one's log) */
     for (int i = 1; i <= 8 && !g_log; i++) {
         char lp[MAX_PATH];
-        if (i == 1) snprintf(lp, sizeof lp, "%s\\modloader.log", g_root);
-        else snprintf(lp, sizeof lp, "%s\\modloader-%d.log", g_root, i);
+        if (i == 1) snprintf(lp, sizeof lp, "%s\\ploader.log", g_root);
+        else snprintf(lp, sizeof lp, "%s\\ploader-%d.log", g_root, i);
         HANDLE fh = CreateFileA(lp, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
         if (fh == INVALID_HANDLE_VALUE) continue;          /* in use by another instance */
         int fd = _open_osfhandle((intptr_t)fh, 0);

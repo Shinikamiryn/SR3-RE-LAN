@@ -7,7 +7,7 @@ Thanks for helping. Reports from other store versions are the most useful contri
 Open an issue with the **Problem / store report** form. It asks for:
 - your store (Steam, GOG, Epic, other) and game version;
 - the output of `LANMod_Installer.exe status`;
-- `modloader\modloader.log` from the game folder, if the mod loader is installed.
+- `ploader\ploader.log` from the game folder, if the mod loader is installed.
 
 The installer never writes anything when something doesn't match what it expects, so a report of an
 error message is safe and very helpful.
@@ -17,7 +17,7 @@ error message is safe and very helpful.
 1. Fork the repository and create a branch.
 2. Build: `sh build.sh` (LLVM-MinGW or MinGW-w64). The output is in `dist/LAN_Mod/`.
 3. Test on your copy of the game: install with the built `LANMod_Installer.exe`, start the game, check
-   **Co-op Campaign > LAN** and `modloader\modloader.log`, then run `uninstall` and check the game is back
+   **Co-op Campaign > LAN** and `ploader\ploader.log`, then run `uninstall` and check the game is back
    to normal.
 4. Open a pull request and describe what you changed and how you tested it.
 

@@ -24,7 +24,7 @@ a backup of the original bytes.
 | Part | What it does |
 |---|---|
 | `installer/lanmod_installer.c` | Finds the game. Reads `main_menu_coop_top.str2_pc` from `cache/interface.vpp_pc` by name, unpacks the menu script (LZ4), adds the LAN button with text edits that must each match exactly once, repacks it and writes it back into its own slot. Then updates the archive directory and the container manifest (`vint_doc_containers.asm_pc`). The original bytes go to `interface.vpp_pc.lanmod_backup`, and uninstall restores and verifies them. |
-| `loader/` | A small mod loader: a `dinput8.dll` proxy. Windows loads it from the game folder; it forwards DirectInput to the real DLL and applies `modloader/patches/*.patch` in memory at startup. The game EXE is never modified, which keeps it compatible with DRM-wrapped EXEs. Patches find their target with byte signatures, so they also work when the code moves between store versions. |
+| `loader/` | A small mod loader: a `dinput8.dll` proxy. Windows loads it from the game folder; it forwards DirectInput to the real DLL and applies `ploader/patches/*.patch` in memory at startup. The game EXE is never modified, which keeps it compatible with DRM-wrapped EXEs. Patches find their target with byte signatures, so they also work when the code moves between store versions. |
 | `patches/lan_join.patch` | Makes LAN joining work: one byte (`je` to `jmp`) in the LAN branch of the host-address check, so it accepts the host's address. |
 | `tools/vpp.py`, `tools/vpp_write.py` | Python reader/writer for the game's `.vpp_pc` / `.str2_pc` packfiles (v6, LZ4), for modders. |
 
@@ -39,7 +39,7 @@ offset = 14     # where the new bytes go, relative to the signature start
 bytes  = eb
 ```
 
-A patch is applied only if its signature matches exactly once. `modloader/modloader.log` reports each
+A patch is applied only if its signature matches exactly once. `ploader/ploader.log` reports each
 patch as APPLIED, already applied, or NOT applied. The loader also supports `*.reloc` (move a static
 table to a bigger buffer) and `*.cave` (replace instructions with a jump to new code); see the comments
 in `loader/src/dinput8_proxy.c`.

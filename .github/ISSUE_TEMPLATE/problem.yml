@@ -29,6 +29,6 @@ body:
   - type: textarea
     id: log
     attributes:
-      label: modloader\modloader.log
+      label: ploader\ploader.log
       description: From the game folder, if it exists. Remove anything you don't want to share.
       render: text
