@@ -23,10 +23,12 @@ cp release/README.txt $OUT/README.txt
 cp LICENSE $OUT/LICENSE.txt
 printf '@echo off\r\n"%%~dp0LANMod_Installer.exe" uninstall\r\n' > "$OUT/Uninstall LAN Mod.bat"
 
+# The files go at the top level of the zip (no LAN_Mod folder inside it): Windows "Extract All"
+# already creates a LAN_Mod folder named after the zip.
 if command -v zip >/dev/null 2>&1; then
-    (cd dist && zip -qr LAN_Mod.zip LAN_Mod)
+    (cd $OUT && zip -qr ../LAN_Mod.zip .)
 elif command -v powershell >/dev/null 2>&1; then
-    powershell -NoProfile -Command "Compress-Archive -Path dist/LAN_Mod -DestinationPath dist/LAN_Mod.zip -Force"
+    powershell -NoProfile -Command "Compress-Archive -Path dist/LAN_Mod/* -DestinationPath dist/LAN_Mod.zip -Force"
 fi
 echo "built $OUT"
 ls -la $OUT $OUT/files
