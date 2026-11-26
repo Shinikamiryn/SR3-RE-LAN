@@ -2,8 +2,8 @@ LAN Mod for Saints Row: The Third Remastered
 =============================================
 
 Play the co-op campaign over your local network (LAN), without Steam lobbies or online services.
-The PC version still contains the game's LAN ("System Link") code, but as shipped the LAN menu entry
-is missing and joining a LAN game fails. This mod restores the menu entry and makes LAN joining work.
+The mod adds a LAN option to the Co-op menu: one player hosts, the others on the same network find
+the game and join.
 
 Works with any PC copy of the game (Steam, GOG, Epic, ...). Every player needs the mod installed.
 

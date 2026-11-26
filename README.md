@@ -3,14 +3,8 @@
 Play the co-op campaign of **Saints Row: The Third Remastered (PC)** over your local network, without
 Steam lobbies or online services.
 
-The PC version still contains the game's LAN ("System Link") code: UDP broadcast discovery on port
-4200 and LAN session create/join. In the PC version as shipped:
-
-1. The **LAN entry is missing** from the Co-op menu.
-2. **Joining a LAN game fails** with "the session is no longer available": the join code stores the
-   host's address as a Steam address, and the LAN path only accepts a network address.
-
-This mod restores the menu entry and makes LAN joining work. Every player needs it installed.
+The mod adds a **LAN** option to the Co-op menu: one player hosts, the others on the same network find
+the game and join. Every player needs it installed.
 
 ## For players
 
